@@ -1,0 +1,64 @@
+variables:
+  random: &random
+    min: 0
+    max: 1
+    step: 1
+    default: 0
+  range: &range
+    formula: 8.0
+
+export:
+  - time
+  - molecule: refG
+    aggregators: [mean]
+    value-filter: onlyfinite
+  - molecule: classicG
+    aggregators: [mean]
+    value-filter: onlyfinite
+  - molecule: rlbasedG
+    aggregators: [mean]
+    value-filter: onlyfinite
+seeds:
+  scenario: *random
+  simulation: *random
+  
+incarnation: scafi
+
+environment:
+  type: Continuous2DEnvironment
+  parameters: []
+
+network-model:
+  type: ConnectWithinDistance #*connectionType
+  parameters: [*range]
+
+pools:
+  - pool: &program
+    - time-distribution:
+        type: ExponentialTime
+        parameters: [1]
+      type: Event
+      actions:
+        - type: RunScafiProgram
+          parameters: [it.unibo.casestudy.GradientRL, 5.0] # second argument is retention time
+    - program: send
+
+displacements:
+  - in:
+      type: Grid
+      parameters: [0, 0, 100, 26, 5, 5, 3.5, 3.5, 0.0, 0.0]
+      # xStart: Double, yStart: Double, xEnd: Double, yEnd: Double, xStep: Double, yStep: Double, xRand: Double, yRand: Double, xShift: Double, yShift: Double
+      #type: GeometricGradientRectangle
+      #parameters: [100, 0, 0, 100, 20, 0.6, 20, true, true]
+      #           # nodes, x, y, sizex, sizey, lambda, step, horizontal, decreasing
+    programs:
+      - *program
+    contents:
+      - molecule: range
+        concentration: *range
+      - molecule: classicG
+        concentration: 0
+      - molecule: rlbasedG
+        concentration: 0
+      - molecule: refG
+        concentration: 0

@@ -1,0 +1,140 @@
+episodes: &episodes 40
+
+variables:
+  random: &random
+    min: 0
+    max: 1
+    step: 1
+    default: 0
+  episodes:
+    formula: *episodes
+  episode: &episode
+    min: 0
+    max: *episodes
+    step: 1
+    default: 0
+  learn: &learn
+    formula: 'episode!=episodes'
+  range: &range
+    formula: 8.0
+  save_every: &save_every
+    formula: 'episodes/2'
+  stop_right_source: &stop_right_source
+    formula: 35
+
+export:
+  - time
+  - molecule: refG
+    aggregators: [mean]
+    value-filter: onlyfinite
+  - molecule: classicG
+    aggregators: [mean]
+    value-filter: onlyfinite
+  - molecule: rlbasedG
+    aggregators: [mean]
+    value-filter: onlyfinite
+  - molecule: err_classicG
+    aggregators: [sum]
+    value-filter: onlyfinite
+  - molecule: err_rlbasedG
+    aggregators: [sum]
+    value-filter: onlyfinite
+seeds:
+  scenario: *random
+  simulation: *random
+  
+incarnation: scafi
+
+environment:
+  type: Continuous2DEnvironment
+  parameters: []
+
+network-model:
+  type: ConnectWithinDistance #*connectionType
+  parameters: [*range]
+
+pools:
+  - pool: &program
+    - time-distribution:
+        type: ExponentialTime
+        parameters: [1]
+      type: Event
+      actions:
+        - type: RunScafiProgram
+          parameters: [it.unibo.casestudy.ConcentratedProgramRL, 5.0] # second argument is retention time
+    - program: send
+  - pool: &loadQF
+    - time-distribution:
+        type: Trigger
+        parameters: [0.0]
+      type: Event
+      actions:
+        - type: it.unibo.LoadQF
+          parameters: [qf]
+  - pool: &saveQF
+      - time-distribution:
+          type: Trigger
+          parameters: [100.0] # NOTE: this need to be adjusted with the simulation length
+        type: Event
+        actions:
+          - type: it.unibo.SaveQF
+            parameters: [qf]
+
+displacements:
+  - in:
+      type: Grid
+      parameters: [0, 0, 100, 26, 5, 5, 3.5, 3.5, 0.0, 0.0] #large
+      #parameters: [5, 5, 50, 20, 5, 5, 3.5, 3.5, 0.0, 0.0] #medium
+      #parameters: [5, 5, 15, 20, 5, 5, 3.5, 3.5, 0.0, 0.0] #small
+      # xStart: Double, yStart: Double, xEnd: Double, yEnd: Double, xStep: Double, yStep: Double, xRand: Double, yRand: Double, xShift: Double, yShift: Double
+      #type: GeometricGradientRectangle
+      #parameters: [100, 0, 0, 100, 20, 0.6, 20, true, true]
+      #           # nodes, x, y, sizex, sizey, lambda, step, horizontal, decreasing
+    programs:
+      - *program
+    contents:
+      - molecule: range
+        concentration: *range
+      - molecule: classicG
+        concentration: 0
+      - molecule: rlbasedG
+        concentration: 0
+      - molecule: refG
+        concentration: 0
+      - molecule: err_classicG
+        concentration: 0
+      - molecule: err_rlbasedG
+        concentration: 0
+      - molecule: learn
+        concentration: *learn
+      - molecule: episode
+        concentration: *episode
+      - molecule: stop_right_source
+        concentration: *stop_right_source
+      - molecule: left_source
+        concentration: 40
+      - molecule: right_source
+        concentration: 59
+  - in:
+      type: Point
+      parameters: [1000,1000]
+    programs: [*loadQF,*saveQF]
+    contents:
+      - molecule: range
+        concentration: *range
+      - molecule: classicG
+        concentration: 0
+      - molecule: rlbasedG
+        concentration: 0
+      - molecule: refG
+        concentration: 0
+      - molecule: err_classicG
+        concentration: 0
+      - molecule: err_rlbasedG
+        concentration: 0
+      - molecule: learn
+        concentration: *learn
+      - molecule: episode
+        concentration: *episode
+      - molecule: save_every
+        concentration: *save_every
