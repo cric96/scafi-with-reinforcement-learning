@@ -34,10 +34,6 @@ abstract class BaseGradientRL extends AggregateProgram with StandardSensors with
    */
   def initialSetup : (OUTPUT, ACTION, STATE)
 
-  /**
-   * define what type of q-learning techniques is used in this process
-   */
-  def learningInstance : QRLFacade[STATE, ACTION]
   def intMoleculeOf(name : String) : Int = Integer.parseInt((node.get[Any](name)).toString)
   //Variable loaded by alchemist configuration.
   lazy val LEFT_SRC = intMoleculeOf("left_source")       // ID of the source at the left of the env (the stable one)
