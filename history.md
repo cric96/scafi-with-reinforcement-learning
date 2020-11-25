@@ -30,7 +30,14 @@ If I evaluated the state evolution locally, the system doesn't converge anymore 
 A simple experiment similar to k-armed bandit examples. Each node should choose one of three "bandit": C block, T block, and G block. In this experiment, the state space isn't considering. 
 
 I could use one of Monte Carlo methods, but currently, I try only with the single-agent Q-learning method. 
-The agent should learn what block computes the gradient from a source. The reward function is the euclidean distance between the node that evaluated the aggregate program and the source node. This is possible because I imagine that exists a central mind that has a clear vision of all nodes.
+The agent should learn what block computes the gradient from a source. 
+
+The reward function is:
+```scala
+- Math.abs(aggregateProgramResult - realEuclideanDistance)
+```
+ 
+This is possible because I imagine that exists a central mind that has a clear vision of all nodes.
 Briefly, the configuration of Q-Learning algorithm is:
 
 **State** : *NoState*
