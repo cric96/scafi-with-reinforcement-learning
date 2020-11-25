@@ -51,6 +51,10 @@ action match {
 ```
 
 The learning process is dived into episodes. Each episode last 100 simulated time units. The policy chosen is an epsilon-greedy policy, in which epsilon decrease following this formula:
+```scala
+Math.min(0.9, Math.exp(-0.5 * t))
+```
+The simulation is composed of 100 nodes dispatched in a grid.
 
 After 24 episodes, the algorithm converges in the optimal policy (**NoState** -> **GConstruct**).
 In the following, some plots resume the temporal progression of the error between the aggregate program output and the euclidean distance.
