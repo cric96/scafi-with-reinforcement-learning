@@ -1,0 +1,90 @@
+episodes: &episodes 40
+
+variables:
+  random: &random
+    min: 0
+    max: 1
+    step: 1
+    default: 0
+  episodes:
+    formula: *episodes
+  episode: &episode
+    min: 0
+    max: *episodes
+    step: 1
+    default: 0
+  qfacade: &qfacade
+    formula: it.unibo.casestudy.TGCRL
+    language: scala
+  states: &states
+    formula: |
+      import it.unibo.casestudy.NoState
+      Seq(NoState)
+    language: scala
+  save_every: &save_every
+    formula: 'episodes/2'
+
+
+
+export:
+  - time
+  - molecule: error
+    aggregators: [mean]
+    value-filter: onlyfinite
+seeds:
+  scenario: *random
+  simulation: *random
+  
+incarnation: scafi
+
+environment:
+  type: Continuous2DEnvironment
+  parameters: []
+
+network-model:
+  type: ConnectWithinDistance #*connectionType
+  parameters: [8.0]
+
+pools:
+  - pool: &program
+    - time-distribution:
+        type: ExponentialTime
+        parameters: [1]
+      type: Event
+      actions:
+        - type: RunScafiProgram
+          parameters: [it.unibo.casestudy.AggregateProgramTGC, 5.0] # second argument is retention time
+    - program: send
+  - pool: &saveQF
+      - time-distribution:
+          type: Trigger
+          parameters: [100.0] # NOTE: this need to be adjusted with the simulation length
+        type: Event
+        actions:
+          - type: it.unibo.SingleQLSave
+            parameters: [*qfacade, *states]
+
+displacements:
+  - in:
+      type: Grid
+      parameters: [0, 0, 100, 26, 5, 5, 3.5, 3.5, 0.0, 0.0]
+    programs:
+      - *program
+    contents:
+      - molecule: source_id
+        concentration: 40
+      - molecule: error
+        concentration: 0.0
+  - in:
+      type: Point
+      parameters: [1000,1000]
+    programs: [*saveQF]
+    contents:
+      - molecule: source_id
+        concentration: 40
+      - molecule: error
+        concentration: 0.0
+      - molecule: episode
+        concentration: *episode
+      - molecule: save_every
+        concentration: *save_every

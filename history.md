@@ -8,7 +8,7 @@ Fixing the time problems, seems that the algorithms reach a stable sub-optimal p
 This result is reached using ConcentratedProgramRL using the task *concentratedGRL*
 This is a sub-optimail solution, but finally the aggregate converge to a policy:
 
- * [*Q-table learn]()
+ * [*Q-table learned](result/19-11-20/result-20-concentrated.txt)
   
 ## 23/11/20
 A robust refactor is need to clarify the library and the usage in the aggregate programming context. 
@@ -25,3 +25,36 @@ NormalState. This makes it seem that "RisingSlowlyState" and
 "NoAction" is a good state/action pair!
 
 If I evaluated the state evolution locally, the system doesn't converge anymore again...
+
+## 25/11/20
+A simple experiment similar to k-armed bandit examples. Each node should choose one of three "bandit": C block, T block, and G block. In this experiment, the state space isn't considering. 
+
+I could use one of Monte Carlo methods, but currently, I try only with the single-agent Q-learning method. 
+The agent should learn what block computes the gradient from a source. The reward function is the euclidean distance between the node that evaluated the aggregate program and the source node. This is possible because I imagine that exists a central mind that has a clear vision of all nodes.
+Briefly, the configuration of Q-Learning algorithm is:
+
+**State** : *NoState*
+
+**Actions**: *TConstruct*, *GConstruct*, *CConstruct*
+algorithm:
+
+```scala
+// file BasicTGC
+val t = T(10)
+val g = distanceTo(source)
+val c = C[Double, Int](g, _ + _, 1, 0)
+action match {
+    case TConstruct => t
+    case GConstruct => g
+    case CConstruct => c
+}
+```
+
+The learning process is dived into episodes. Each episode last 100 simulated time units. The policy chosen is an epsilon-greedy policy, in which epsilon decrease following this formula:
+
+After 24 episodes, the algorithm converges in the optimal policy (**NoState** -> **GConstruct**).
+In the following, some plots resume the temporal progression of the error between the aggregate program output and the euclidean distance.
+ * Initial error ![image](result/25-11-20/result_01_episode-0..png)
+ * During learning ![image](result/25-11-20/result_01_episode-9..png)
+ * Final result ![image](result/25-11-20/result_01_episode-24..png)
+ * [*Q-table learned](result/25-11-20/result-40.txt)

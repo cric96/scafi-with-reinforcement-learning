@@ -1,0 +1,6 @@
+(NormalState,NoIncrease) = 11.308558386334262
+(NormalState,IncreaseLittle) = -9.710029255953295
+(NormalState,IncreaseMuch) = -9.730257049408644
+(RisingSlowlyState,NoIncrease) = 3.5573104870484045
+(RisingSlowlyState,IncreaseLittle) = 14.172237066845472
+(RisingSlowlyState,IncreaseMuch) = 2.120211942928619

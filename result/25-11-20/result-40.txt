@@ -1,0 +1,3 @@
+(NoState,TConstruct) = -68.99699861758842
+(NoState,GConstruct) = -13.592294904976
+(NoState,CConstruct) = -492.2525252696748

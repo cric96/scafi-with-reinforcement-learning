@@ -1,6 +1,5 @@
 package it.unibo.casestudy
 
-import it.unibo.rl.model.QRLImpl
 import it.unibo.scafi.learning.{BaseGradientAlgorithm, BaseGradientRL, QLearningProgram, QRLFacade}
 
 /**

@@ -172,5 +172,7 @@ makeTest(name="concentratedGRL", file = "concentratedGradientRL", time = 120.0, 
 
 makeTest(name="distributedGRL", file = "distributedGradientRL", time = 120.0, vars = setOf("episode"))
 
+makeTest(name="concentratedTGC", file = "TGCRl", time = 100.0, vars = setOf("episode"), threads = 1)
+
 
 defaultTasks("fatJar")
