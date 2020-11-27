@@ -35,7 +35,7 @@ The agent should learn what block computes the gradient from a source.
 The reward function is:
 ```scala
 - Math.abs(aggregateProgramResult - realEuclideanDistance)
-```
+```1
  
 This is possible because I imagine that exists a central mind that has a clear vision of all nodes.
 Briefly, the configuration of Q-Learning algorithm is:
