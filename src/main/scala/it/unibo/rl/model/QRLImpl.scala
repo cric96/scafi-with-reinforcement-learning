@@ -126,7 +126,7 @@ trait QRLImpl[S,A] extends QRL[S,A] {
 }
 
 case class QLParameter(value: Double, t: Double) {
+  def epsilon = Math.min(0.9, 0.1 + (1- 0.00) * math.exp(-0.05 * t))
+  def alpha = Math.max(0.001, Math.min(0.5, 0.1 - Math.log10((t+1)/100.0))) //
 
-  def epsilon = Math.min(0.9, 0.00 + (1- 0.00) * math.exp(-0.5 * t))
-  def alpha = Math.max(0.01, Math.min(0.5, 0.1 - Math.log10((t+1)/100.0))) //0.5
 }

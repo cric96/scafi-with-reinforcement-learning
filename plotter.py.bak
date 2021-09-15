@@ -23,7 +23,6 @@ import pprint
 from collections import defaultdict
 import ruamel.yaml as yaml
 from textwrap import wrap
-from functools import reduce
 #import copy  # copy.deepcopy(myDict)
 #import fnmatch # for fnmatch.fnmatch(str,glob)
 
@@ -59,15 +58,15 @@ def process_files(filepaths):
   
 # Returns a pair (id,matrix) for each parsed file
 def process_file(filepath):
-  print(("\n>>> Processing file: " + filepath))
+  print("\n>>> Processing file: " + filepath)
   # Open file handle
   fh = open(filepath, "r")
   
   # Deduce some info from file name
   parts = re.findall('_+([^-]+)-(\d+\.\d+)', filepath.replace(join(basedir,basefn),''))
-  parts = [(p[0],format(float(p[1]),'.6f').rstrip('0')) for p in parts]
+  parts = map(lambda p: (p[0],format(float(p[1]),'.6f').rstrip('0')), parts)
   parts = tuple(parts) # this must be hashable (and lists are not)
-  print(("Dimensions: " + "; ".join([str(x) for x in parts])))
+  print("Dimensions: " + "; ".join(map(lambda x: str(x), parts)))
   parts_suffix = "_".join(map("-".join,parts))
   title = "; ".join(map("=".join,parts))
   
@@ -90,12 +89,12 @@ def process_file_content(filehandle):
   # Read data
   lines = filehandle.readlines()
   # Removes empty and comment lines and maps to float
-  data_rows = np.array([list(map(float, s.strip().split(" "))) for s in lines if len(s)>0 and s[0]!="#"], dtype='float')
+  data_rows = np.array([map(float, s.strip().split(" ")) for s in lines if len(s)>0 and s[0]!="#"], dtype='float')
   return data_rows
 
 def do_bucketize(contents, nbuckets=100, start=None, end=None):
   res = dict()
-  for config, content in list(contents.items()):
+  for config, content in contents.items():
     time = content[0]
     if start==None:
       start = time[0]
@@ -109,13 +108,13 @@ def do_bucketize(contents, nbuckets=100, start=None, end=None):
   
 def merge_samples(contents, configs):
   res = dict()
-  for config,sconfigs in list(configs.items()):
+  for config,sconfigs in configs.items():
     nsamples = len(sconfigs)
-    print(("CONFIGURATION: " + str(config) + " has " + str(nsamples) + " samples."))
+    print("CONFIGURATION: " + str(config) + " has " + str(nsamples) + " samples.")
     
     matrices = [contents[sample_config] for sample_config in sconfigs]
-    time = [round(x) for x in matrices[0][0]] # time should be the same for all
-    matrices = [l[1:] for l in matrices] # skips the time dimension for each sample
+    time = map(lambda x: round(x), matrices[0][0]) # time should be the same for all
+    matrices = map(lambda l: l[1:], matrices) # skips the time dimension for each sample
     # Assumption: the position of values in matrices reflects the time in a consistent manner
     
     # Printing statistics
@@ -129,13 +128,13 @@ def merge_samples(contents, configs):
     #print(stats)
     
     merged = reduce(lambda a,b: a+b, matrices)
-    merged = [x/nsamples for x in merged]
+    merged = map(lambda x: x/nsamples, merged)
     merged.insert(0,time) # reinserts time
     res[config] = merged
   return res
   
 def plot(config,content):
-  title = list(map("=".join,config))
+  title = map("=".join,config)
   if doWrap is not None: title = wrap("    ".join(title), 30)
   title = "\n".join([s.strip() for k,s in enumerate(title) if k not in excluded_titles])
   parts_suffix = "_".join(map("-".join,config))
@@ -148,16 +147,16 @@ def plot(config,content):
       plt.plot(content[pformat[0]], content[pformat[k]], color=the_plots_colors[nf][pformat[k]], label=the_plots_labels[pformat[k]], linewidth=line_widths[nf][k])
       maxy = max(maxy, np.nanmax(content[pformat[k]]))
     maxy = min(maxy+10, limitPlotY[nf])
-    if nf in forceLimitPlotY: maxy = forceLimitPlotY[nf]
+    if forceLimitPlotY.has_key(nf): maxy = forceLimitPlotY[nf]
     axes = plt.gca()
     axes.set_ylim(ymax = maxy, ymin = startPlotY[nf])  
-    if nf in forceLimitPlotX: axes.set_xlim(xmax = forceLimitPlotX[nf], xmin = startPlotX[nf])
-    plt.legend(loc= legendPosition[nf] if nf in legendPosition else 'upper right', prop={'size': legend_size})
+    if forceLimitPlotX.has_key(nf): axes.set_xlim(xmax = forceLimitPlotX[nf], xmin = startPlotX[nf])
+    plt.legend(loc= legendPosition[nf] if legendPosition.has_key(nf) else 'upper right', prop={'size': legend_size})
     t = plt.title(title_prefix[nf]+title)
     plt.subplots_adjust(top=.84) 
-    suffix = (suffixes[nf] if nf in suffixes else "".join(map(str,pformat))) + "_" + parts_suffix
+    suffix = (suffixes[nf] if suffixes.has_key(nf) else "".join(map(str,pformat))) + "_" + parts_suffix
     savefn = outdir+basefn+"_"+ suffix +".png"
-    print(("SAVE: " + savefn))
+    print("SAVE: " + savefn)
     plt.tight_layout()
     plt.savefig(savefn, bbox_inches='tight', pad_inches = 0)  
     plt.close() 
@@ -202,17 +201,17 @@ if not os.path.exists(outdir):
   
 files = get_data_files(basedir,fileregex)
 
-print(("Executing script: basedir=" + basedir + "\t fileregex=" + fileregex))
-print(("Files to be processed: " + str(files)))
-print(("Output directory for graphs: " + str(outdir)))
-print(("Loading plot configurartion: " + str(plotconfig)))
+print("Executing script: basedir=" + basedir + "\t fileregex=" + fileregex)
+print("Files to be processed: " + str(files))
+print("Output directory for graphs: " + str(outdir))
+print("Loading plot configurartion: " + str(plotconfig))
 
 ############################# Plot configuration
 
 def parse_sim_option(pc, option, default=None):
     opt = pc.get(option)
     if type(opt) is dict:
-        defval = opt[list(opt.keys())[-1]]
+        defval = opt[opt.keys()[-1]]
         opt = defaultdict(lambda: defval, opt)
     elif type(opt) is list:
         defval = opt[-1]
@@ -222,7 +221,7 @@ def parse_sim_option(pc, option, default=None):
     else: # single value
         defval = opt
         opt = defaultdict(lambda: defval)
-    print((option + " >> " + str(opt)))
+    print(option + " >> " + str(opt))
     return opt
 
 with open(plotconfig, 'r') as stream:
@@ -268,17 +267,17 @@ contents = process_files(files)
 # CONFIGURATIONS
 #   file1_2 [d1=*, d2=B ] => export1=[...], ..., exportK=[...]
 #   file3_4 [d1=*, d2=B'] => export1=[...], ..., exportK=[...]
-configs = list(contents.keys()) # List of configs, where each config is an N-dim tuple of (k,v) tuples
+configs = contents.keys() # List of configs, where each config is an N-dim tuple of (k,v) tuples
 if sampling:
   # Let's group configurations (individual datasets) into groups where only a sampling dimension varies
   # sconfigs is a dict where keys are (dims-'random') and values are lists of configs
   sconfigs = group_by_varying_values_of(sampling_dim, configs)
   
   merged_contents = merge_samples(contents, sconfigs)
-  for title,content in list(merged_contents.items()):
+  for title,content in merged_contents.items():
     plot(title,content)
 else:
-    for title,content in list(contents.items()): plot(title,content)
+    for title,content in contents.items(): plot(title,content)
   
 
 if bucketize:

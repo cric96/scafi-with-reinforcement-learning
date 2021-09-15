@@ -2,12 +2,13 @@ package it.unibo
 
 import java.io.{BufferedOutputStream, BufferedWriter, FileInputStream, FileOutputStream, ObjectInputStream, ObjectOutputStream, OutputStreamWriter}
 import java.nio.file.{Files, Path}
-
 import it.unibo.alchemist.model.implementations.actions.AbstractLocalAction
 import it.unibo.alchemist.model.implementations.molecules.SimpleMolecule
 import it.unibo.alchemist.model.interfaces._
-import it.unibo.casestudy.ConcentrateGQRL
+import it.unibo.casestudy.{ConcentrateGQRL, IndependentHopCountRL}
 import org.apache.commons.math3.random.RandomGenerator
+
+import scala.collection.JavaConverters.asScalaIteratorConverter
 
 sealed class LoadQF[T, P <: Position[P]](
                                           environment: Environment[T, P],
@@ -59,6 +60,13 @@ sealed class SaveQF[T, P <: Position[P]](
 
     val oos = new ObjectOutputStream(new FileOutputStream(s"qtable-${episode}"))
     val bos = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(s"qtable-${episode}.txt")))
+    val tables = this.environment.getNodes.iterator().asScala.toList.map(node => IndependentHopCountRL.mine(node.getId))
+    val states = tables.head.states
+    val actions = tables.head.actions
+    val globalTable = states.toList.map(state => (state, actions.toList.map(action => tables.map(_.qTable(state, action)).sum / tables.size)))
+    val head = List("/") ++ actions.map(_.toString)
+    val rows = globalTable.map { case (state, values) => state.toString() :: values.map(_.toString) }
+    println(Tabulator.format(head :: rows))
     for(s <- ConcentrateGQRL.states;
         a <- ConcentrateGQRL.actions){
       oos.writeDouble(ConcentrateGQRL.qTable(s,a))
@@ -104,4 +112,30 @@ sealed class SaveQF[T, P <: Position[P]](
 
     run = true
   }
+}
+
+object Tabulator {
+  def format(table: Seq[Seq[Any]]) = table match {
+    case Seq() => ""
+    case _ =>
+      val sizes = for (row <- table) yield (for (cell <- row) yield if (cell == null) 0 else cell.toString.length)
+      val colSizes = for (col <- sizes.transpose) yield col.max
+      val rows = for (row <- table) yield formatRow(row, colSizes)
+      formatRows(rowSeparator(colSizes), rows)
+  }
+
+  def formatRows(rowSeparator: String, rows: Seq[String]): String = (
+    rowSeparator ::
+      rows.head ::
+      rowSeparator ::
+      rows.tail.toList :::
+      rowSeparator ::
+      List()).mkString("\n")
+
+  def formatRow(row: Seq[Any], colSizes: Seq[Int]) = {
+    val cells = (for ((item, size) <- row.zip(colSizes)) yield if (size == 0) "" else ("%" + size + "s").format(item))
+    cells.mkString("|", "|", "|")
+  }
+
+  def rowSeparator(colSizes: Seq[Int]) = colSizes map { "-" * _ } mkString("+", "+", "+")
 }
