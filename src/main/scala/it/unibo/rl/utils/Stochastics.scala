@@ -3,9 +3,6 @@ package it.unibo.rl.utils
 import scala.util.Random
 
 object Stochastics extends App {
-
-  implicit lazy val random = new Random()
-
   /**
    * (p1,a1),...,(pn,an) --> (p1,a1),(p1+p2,a2),..,(p1+..+pn,an)
    * @param l
@@ -23,16 +20,16 @@ object Stochastics extends App {
    * @return
    */
   def draw[A](cumulativeList: List[(Double,A)])
-             (implicit rnd: Random = random): A = {
+             (implicit rnd: Random): A = {
     val rndVal = rnd.nextDouble() * cumulativeList.last._1
     cumulativeList.collectFirst{ case (r, a) if r >= rndVal => a }.get
   }
 
-  def uniformDraw[A](actions: Set[A])(implicit rnd: Random = random): A = {
-    actions.toList(random.nextInt(actions.size))
+  def uniformDraw[A](actions: Set[A])(implicit rnd: Random): A = {
+    actions.toList(rnd.nextInt(actions.size))
   }
 
-  def drawFiltered(filter: Double=>Boolean)(implicit rnd: Random = random): Boolean = {
+  def drawFiltered(filter: Double=>Boolean)(implicit rnd: Random): Boolean = {
     filter(rnd.nextDouble())
   }
 
@@ -45,8 +42,10 @@ object Stochastics extends App {
    * @return
    */
   def statistics[A](choices: Set[(Double,A)], size: Int)
-                   (implicit rnd: Random = random): Map[A,Int] =
-    (1 to size).map(i => Stochastics.draw(cumulative(choices.toList))(random))
+                   (implicit rnd: Random): Map[A,Int] =
+    (1 to size).map(_ => Stochastics.draw(cumulative(choices.toList)))
                 .groupBy(identity)
+                .view
                 .mapValues(_.size)
+                .toMap
 }

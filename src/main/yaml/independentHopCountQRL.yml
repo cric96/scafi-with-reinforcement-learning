@@ -1,4 +1,4 @@
-episodes: &episodes 100
+incarnation: scafi
 
 variables:
   random: &random
@@ -6,8 +6,8 @@ variables:
     max: 1
     step: 1
     default: 0
-  episodes:
-    formula: *episodes
+  episodes: &episodes
+    formula: 100
   episode: &episode
     min: 0
     max: *episodes
@@ -18,9 +18,17 @@ variables:
   range: &range
     formula: 8.0
   save_every: &save_every
-    formula: 'episodes/2'
+    formula: 'episodes/10'
   stop_right_source: &stop_right_source
     formula: 35
+
+environment:
+  type: Continuous2DEnvironment
+  parameters: []
+
+network-model:
+  type: ConnectWithinDistance #*connectionType
+  parameters: [*range]
 
 export:
   - time
@@ -45,65 +53,26 @@ export:
 seeds:
   scenario: *random
   simulation: *random
-  
-incarnation: scafi
 
-environment:
-  type: Continuous2DEnvironment
-  parameters: []
-
-network-model:
-  type: ConnectWithinDistance #*connectionType
-  parameters: [*range]
-
-pools:
-  - pool: &program
-    - time-distribution:
-        type: ExponentialTime
-        parameters: [1]
-      type: Event
-      actions:
-        - type: RunScafiProgram
-          parameters: [it.unibo.casestudy.IndependentsLearnersHopCount, 5.0] # second argument is retention time
-    - program: send
-  - poo: &movement
-    - time-distribution:
-        type: ExponentialTime
-        parameters: [1]
-      type: Event
-      actions:
-        - type: BrownianMove
-          parameters: [ 5.0 ]
-  - pool: &loadQF
-    - time-distribution:
-        type: Trigger
-        parameters: [0.0]
-      type: Event
-      actions:
-        - type: it.unibo.LoadQF
-          parameters: [qf]
-  - pool: &saveQF
+deployments:
+  - type: Grid
+    parameters: [0, 0, 100, 20, 5, 5, 3.5, 3.5, 0.0, 0.0] #large
+    #parameters: [5, 5, 50, 20, 5, 5, 3.5, 3.5, 0.0, 0.0] #medium
+    #parameters: [5, 5, 15, 20, 5, 5, 3.5, 3.5, 0.0, 0.0] #small
+    # xStart: Double, yStart: Double, xEnd: Double, yEnd: Double, xStep: Double, yStep: Double, xRand: Double, yRand: Double, xShift: Double, yShift: Double
+    #type: GeometricGradientRectangle
+    #parameters: [100, 0, 0, 100, 20, 0.6, 20, true, true]
+    #           # nodes, x, y, sizex, sizey, lambda, step, horizontal, decreasing
+    programs:
       - time-distribution:
-          type: Trigger
-          parameters: [100.0] # NOTE: this need to be adjusted with the simulation length
+          type: ExponentialTime
+          parameters: [1]
         type: Event
         actions:
-          - type: it.unibo.SaveQF
-            parameters: [qf]
+          - type: RunScafiProgram
+            parameters: [it.unibo.casestudy.IndependentsLearnersHopCount, 5.0] # second argument is retention time
+      - program: send
 
-displacements:
-  - in:
-      type: Grid
-      parameters: [0, 0, 100, 20, 5, 5, 3.5, 3.5, 0.0, 0.0] #large
-      #parameters: [5, 5, 50, 20, 5, 5, 3.5, 3.5, 0.0, 0.0] #medium
-      #parameters: [5, 5, 15, 20, 5, 5, 3.5, 3.5, 0.0, 0.0] #small
-      # xStart: Double, yStart: Double, xEnd: Double, yEnd: Double, xStep: Double, yStep: Double, xRand: Double, yRand: Double, xShift: Double, yShift: Double
-      #type: GeometricGradientRectangle
-      #parameters: [100, 0, 0, 100, 20, 0.6, 20, true, true]
-      #           # nodes, x, y, sizex, sizey, lambda, step, horizontal, decreasing
-    programs:
-      - *program
-      #- *movement
     contents:
       - molecule: range
         concentration: *range
@@ -126,13 +95,20 @@ displacements:
       - molecule: stop_right_source
         concentration: *stop_right_source
       - molecule: left_source
-        concentration: 40
+        concentration: 40 #40
       - molecule: right_source
-        concentration: 59
-  - in:
-      type: Point
-      parameters: [1000,1000]
-    programs: [*loadQF,*saveQF]
+        concentration: 59 #59
+
+
+  - type: Point
+    parameters: [1000,1000]
+    programs:
+      - time-distribution:
+          type: Trigger
+          parameters: [ 100.0 ]
+        type: Event
+        actions: { type: it.unibo.Progress, parameters: [ qf ] }
+
     contents:
       - molecule: range
         concentration: *range
@@ -152,5 +128,5 @@ displacements:
         concentration: *learn
       - molecule: episode
         concentration: *episode
-      - molecule: save_every
+      - molecule: print_every
         concentration: *save_every

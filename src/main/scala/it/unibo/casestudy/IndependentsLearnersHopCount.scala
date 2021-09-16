@@ -1,13 +1,14 @@
 package it.unibo.casestudy
 
-import it.unibo.scafi.learning.{BaseHopCountAlgorithm, BaseHopCountRL, QRLFacade}
+import it.unibo.scafi.learning.{BaseHopCountAlgorithm, BaseHopCountRL}
 
 /**
  * Distributed Q-learning version in which we imagine that there isn't a central mind that has a clear vision of all the
  * system state.
  */
 class IndependentsLearnersHopCount extends BaseHopCountRL with BaseHopCountAlgorithm {
-  override def learningInstance = IndependentHopCountRL.mine(mid())
+
+  override def learningInstance = IndependentHopCountRL.mine(mid, randomGen)
 
   override def initialSetup = (HopCountQRL.inf, 0, (HopCountQRL.inf, 0))
 
@@ -39,10 +40,10 @@ class IndependentsLearnersHopCount extends BaseHopCountRL with BaseHopCountAlgor
 
   override def act(algorithm: LearningBasedAlgorithm)(input: => (Boolean, () => Int))(initial: (Int, Int, (Int, Int)))(time: Double): Int = {
     val (o0, a0, s0) = initial
-    val q = learningInstance
+    val q = learningInstance//IndependentHopCountRL.average
     val (hopCount, _, _) = rep((o0, a0, s0)){
       case (hopCountResult, actionT, oldState) => val state = algorithm.state(hopCountResult, oldState, actionT)
-        learningInstance.qlearning.setState(state)
+        q.qlearning.setState(state)
         val action = q.qlearning.takeGreedyAction(q.qTable)
         (algorithm.run(input, action), action, state)
     }
