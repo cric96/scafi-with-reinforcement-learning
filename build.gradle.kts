@@ -97,7 +97,8 @@ fun makeTest(
         }
     }*/
 }
-makeTest(name="independentHopCountQRL", file = "independentHopCountQRL", time = 120.0, vars = setOf("episode"), threads = 1)
-makeTest(name="independentHopCountQRLGUI", file = "independentHopCountQRL", time = 120.0, threads = 1)
+// thread = 1 force simulation to be sequential
+makeTest(name="independentHopCountQRL", file = "independentHopCountQRL", vars = setOf("episode"), threads = 1)
+makeTest(name="independentHopCountQRLGUI", file = "independentHopCountQRL", threads = 1)
 
 defaultTasks("fatJar")

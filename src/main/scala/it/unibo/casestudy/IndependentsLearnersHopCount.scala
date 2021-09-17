@@ -11,6 +11,7 @@ class IndependentsLearnersHopCount extends BaseHopCountRL with BaseHopCountAlgor
 
   override lazy val learningInstance = LearningInstances.mine(mid)
   implicit lazy val rand = randomGen
+
   override def initialSetup = (HopCountQRL.inf, 0, (HopCountQRL.inf, 0))
 
   override def algorithm: LearningBasedAlgorithm = new BaseHopCountAlgorithm()

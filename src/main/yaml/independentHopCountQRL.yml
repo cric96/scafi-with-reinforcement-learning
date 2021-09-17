@@ -5,50 +5,23 @@ variables:
   random: &random { formula: 0 }
   episodes: &episodes { formula: 100 }
   episode: &episode { min: 0, max: *episodes, step: 1, default: 0 }
-  learn: &learn { formula: 'episode < episodes' }
+  episode_length: &episode_length { formula: 120 }
+  stop_learning_at: { formula: 'episodes - 5' }
+  learn: &learn { formula: 'episode < stop_learning_at' }
   print_every: &print_every { formula: 'episodes / 10' }
   range: &range { formula: 8.0 }
   # PROGRAM VARIABLES
   stop_right_source: &stop_right_source { formula: 35 }
   # UTILITY, INITIALISE N QTABLE FOR N AGENTS
-  reloadTable: &reloadTable
+  reloadTable: &reload_table
     language: kotlin
     formula: >
       it.unibo.alchemist.utils.LearningInstances.initialise(100);
-      10 //foo value
-
-environment:
-  type: Continuous2DEnvironment
-  parameters: []
-
-network-model:
-  type: ConnectWithinDistance #*connectionType
-  parameters: [*range]
-
-export:
-  - time
-  - molecule: refG
-    aggregators: [mean]
-    value-filter: onlyfinite
-  - molecule: classicHopCount
-    aggregators: [mean]
-    value-filter: onlyfinite
-  - molecule: rlbasedHopCount
-    aggregators: [mean]
-    value-filter: onlyfinite
-  - molecule: err_classicHopCount
-    aggregators: [sum]
-    value-filter: onlyfinite
-  - molecule: err_rlbasedHopCount
-    aggregators: [sum]
-    value-filter: onlyfinite
-  - molecule: reward
-    aggregators: [ mean ]
-    value-filter: onlyfinite
-seeds:
-  scenario: *random
-  simulation: *random
-
+      0.0 //foo value
+seeds: { scenario: *random, simulation: *random }
+terminate: { type: AfterTime, parameters: [*episode_length] }
+environment: { type: Continuous2DEnvironment }
+network-model: { type: ConnectWithinDistance, parameters: [*range] }
 deployments:
   - type: Grid
     parameters: [0, 0, 100, 20, 5, 5, 3.5, 3.5, 0.0, 0.0] #large
@@ -86,17 +59,19 @@ deployments:
       - molecule: stop_right_source
         concentration: *stop_right_source
       - molecule: left_source
-        concentration: 40 #40
+        concentration: 40
       - molecule: right_source
-        concentration: 59 #59
+        concentration: 59
       - molecule: reloadTable
-        concentration: *reloadTable
+        concentration: *reload_table
+      - molecule: episode_length
+        concentration: *episode_length
 
 
   - type: Point
     parameters: [1000,1000]
     programs:
-      - time-distribution: { type: Trigger, parameters: [ 100.0 ]}
+      - time-distribution: { type: Trigger, parameters: [ 0.0 ]}
         type: Event
         actions: { type: it.unibo.Progress }
 
@@ -121,3 +96,24 @@ deployments:
         concentration: *episode
       - molecule: print_every
         concentration: *print_every
+
+export:
+  - time
+  - molecule: refG
+    aggregators: [mean]
+    value-filter: onlyfinite
+  - molecule: classicHopCount
+    aggregators: [mean]
+    value-filter: onlyfinite
+  - molecule: rlbasedHopCount
+    aggregators: [mean]
+    value-filter: onlyfinite
+  - molecule: err_classicHopCount
+    aggregators: [sum]
+    value-filter: onlyfinite
+  - molecule: err_rlbasedHopCount
+    aggregators: [sum]
+    value-filter: onlyfinite
+  - molecule: reward
+    aggregators: [ mean ]
+    value-filter: onlyfinite

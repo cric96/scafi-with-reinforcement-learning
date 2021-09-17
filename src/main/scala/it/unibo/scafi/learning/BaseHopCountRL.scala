@@ -1,21 +1,22 @@
 package it.unibo.scafi.learning
 
 import it.unibo.alchemist.model.scafi.ScafiIncarnationForAlchemist.{ScafiAlchemistSupport, _}
-import it.unibo.alchemist.utils.Clock
-//import it.unibo.alchemist.utils.Clock
 import it.unibo.casestudy.HopCountQRL
 import it.unibo.scafi.RLGradientLib
 
 abstract class BaseHopCountRL extends AggregateProgram with StandardSensors with Gradients with ScafiAlchemistSupport
-  with FieldCalculusSyntax with FieldUtils with CustomSpawn with RLGradientLib with AggregateProgramWithLearning{
+  with FieldCalculusSyntax with FieldUtils with CustomSpawn with RLGradientLib with AggregateProgramWithLearning {
 
   override type OUTPUT = Int
   override type INPUT = (Boolean, () => Int)
   def algorithm : LearningBasedAlgorithm
   def initialSetup : (OUTPUT, ACTION, STATE)
   def learningInstance : QRLFacade[STATE, ACTION]
-  def intMoleculeOf(name : String) : Int = Integer.parseInt((node.get[Any](name)).toString)
+  def intMoleculeOf(name : String) : Int = (node.get[Integer](name))
   lazy val episode = node.get[java.lang.Double]("episode")
+  lazy val episodeLength = node.get[java.lang.Integer]("episode_length")
+  lazy val haveToLearn = node.get[java.lang.Boolean]("learn")
+  lazy val clockFactor = 100
   //Variable loaded by alchemist configuration.
   lazy val LEFT_SRC: Int = intMoleculeOf("left_source")       // ID of the source at the left of the env (the stable one)
   lazy val RIGHT_SRC: Int = intMoleculeOf("right_source")      // ID of the source at the right of the env (the unstable one)
@@ -31,9 +32,14 @@ abstract class BaseHopCountRL extends AggregateProgram with StandardSensors with
     // Can be used in the learning session
     node.put("refHopCount", refHopCount)
     // RL-BASED GRADIENT: THE OBJECT OF OUR EXPERIMENTS
-    val clock = passedTime + episode * 120
+    val clock = (passedTime + episode * episodeLength) / clockFactor
 
-    val rlbasedHopCount = learn(algorithm)((source, () => hopCountMetric().toInt))(initialSetup)(clock)
+    val rlbasedHopCount =
+      if(haveToLearn){
+        learn(algorithm)((source, () => hopCountMetric().toInt))(initialSetup)(clock)
+      } else {
+        act(algorithm)((source, () => hopCountMetric().toInt))(initialSetup)(clock)
+      }
     // EXPORTS
     node.put("classicHopCount", classicHopCount)
     node.put("rlbasedHopCount", rlbasedHopCount)
@@ -80,9 +86,9 @@ trait BaseHopCountAlgorithm {
       val minAction = actions(minOutputEntity._1)
       val recents = recentValues(3, (minOutput, minAction))
       val latests = recents.head
-      val diff = latests._1 - minOutput
+      val diff = Math.abs(latests._1 - minOutput)
       val currentState = if(Math.abs(diff) > maxStateValue) {
-        diff.sign * maxStateValue
+        bigInteger
       } else {
         diff
       }
