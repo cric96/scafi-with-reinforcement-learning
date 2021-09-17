@@ -1,0 +1,119 @@
+incarnation: scafi
+
+variables:
+  # SIMULATION VARIABLE
+  random: &random { formula: 0 }
+  episodes: &episodes { formula: 60 }
+  episode: &episode { min: 0, max: *episodes, step: 1, default: 0 }
+  episode_length: &episode_length { formula: 20 }
+  stop_learning_at: { formula: 'episodes - 5' }
+  learn: &learn { formula: 'episode < stop_learning_at' }
+  print_every: &print_every { formula: 'episodes / 10' }
+  range: &range { formula: 8.0 }
+  # PROGRAM VARIABLES
+  stop_right_source: &stop_right_source { formula: 'episode_length + 5' }
+  # UTILITY, INITIALISE N QTABLE FOR N AGENTS
+  reloadTable: &reload_table
+    language: kotlin
+    formula: >
+      it.unibo.alchemist.utils.LearningInstances.initialise(100);
+      0.0 //foo value
+seeds: { scenario: *random, simulation: *random }
+terminate: { type: AfterTime, parameters: [*episode_length] }
+environment: { type: Continuous2DEnvironment }
+network-model: { type: ConnectWithinDistance, parameters: [*range] }
+deployments:
+  - type: Grid
+    parameters: [0, 0, 100, 20, 5, 5, 3.5, 3.5, 0.0, 0.0] #large
+    # xStart: Double, yStart: Double, xEnd: Double, yEnd: Double, xStep: Double, yStep: Double, xRand: Double, yRand: Double, xShift: Double, yShift: Double
+    #type: GeometricGradientRectangle
+    #parameters: [100, 0, 0, 100, 20, 0.6, 20, true, true]
+    #           # nodes, x, y, sizex, sizey, lambda, step, horizontal, decreasing
+    programs:
+      - time-distribution:
+          type: ExponentialTime
+          parameters: [1]
+        type: Event
+        actions: { type: RunScafiProgram, parameters: [it.unibo.casestudy.IndependentsLearnersHopCount, 5.0] }
+      - program: send
+
+    contents:
+      - molecule: range
+        concentration: *range
+      - molecule: classicHopCount
+        concentration: 0
+      - molecule: rlbasedHopCount
+        concentration: 0
+      - molecule: refG
+        concentration: 0
+      - molecule: err_classicHopCount
+        concentration: 0
+      - molecule: err_rlbasedHopCount
+        concentration: 0
+      - molecule: reward
+        concentration: 0
+      - molecule: learn
+        concentration: *learn
+      - molecule: episode
+        concentration: *episode
+      - molecule: stop_right_source
+        concentration: *stop_right_source
+      - molecule: left_source
+        concentration: 40
+      - molecule: right_source
+        concentration: 59
+      - molecule: reloadTable
+        concentration: *reload_table
+      - molecule: episode_length
+        concentration: *episode_length
+
+
+  - type: Point
+    parameters: [1000,1000]
+    programs:
+      - time-distribution: { type: Trigger, parameters: [ 0.0 ]}
+        type: Event
+        actions: { type: it.unibo.Progress }
+
+    contents:
+      - molecule: range
+        concentration: *range
+      - molecule: classicHopCount
+        concentration: 0
+      - molecule: rlbasedHopCount
+        concentration: 0
+      - molecule: refG
+        concentration: 0
+      - molecule: err_classicHopCount
+        concentration: 0
+      - molecule: err_rlbasedHopCount
+        concentration: 0
+      - molecule: reward
+        concentration: 0
+      - molecule: learn
+        concentration: *learn
+      - molecule: episode
+        concentration: *episode
+      - molecule: print_every
+        concentration: *print_every
+
+export:
+  - time
+  - molecule: refG
+    aggregators: [mean]
+    value-filter: onlyfinite
+  - molecule: classicHopCount
+    aggregators: [mean]
+    value-filter: onlyfinite
+  - molecule: rlbasedHopCount
+    aggregators: [mean]
+    value-filter: onlyfinite
+  - molecule: err_classicHopCount
+    aggregators: [sum]
+    value-filter: onlyfinite
+  - molecule: err_rlbasedHopCount
+    aggregators: [sum]
+    value-filter: onlyfinite
+  - molecule: reward
+    aggregators: [ mean ]
+    value-filter: onlyfinite

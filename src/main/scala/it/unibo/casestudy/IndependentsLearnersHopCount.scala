@@ -1,6 +1,7 @@
 package it.unibo.casestudy
 
 import it.unibo.alchemist.utils.LearningInstances
+import it.unibo.rl.utils.Stochastics
 import it.unibo.scafi.learning.{BaseHopCountAlgorithm, BaseHopCountRL}
 
 /**

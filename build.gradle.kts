@@ -1,7 +1,11 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import java.io.ByteArrayOutputStream
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+
+// Scala version
+val scalaLib: String by project
+val scala: String by project
+val batch: String by project
 
 plugins {
     java
@@ -16,24 +20,18 @@ repositories {
 }
 
 dependencies {
-    implementation("it.unibo.alchemist:alchemist:11.3.1")
-    implementation("it.unibo.alchemist:alchemist-incarnation-scafi:11.3.1")
-    implementation("it.unibo.alchemist:alchemist-swingui:11.3.1")
-
-    implementation("org.scala-lang:scala-library:2.13.2")
-    implementation("it.unibo.scafi:scafi-core_2.13:0.3.3")
+    // Alchemist dependency
+    implementation("it.unibo.alchemist:alchemist:_")
+    implementation("it.unibo.alchemist:alchemist-incarnation-scafi:_")
+    implementation("it.unibo.alchemist:alchemist-swingui:_")
+    // ScaFi dependency
+    implementation("org.scala-lang:scala-library:$scalaLib")
+    implementation("it.unibo.scafi:scafi-core_${scala}:_")
 }
 
 tasks.withType<ScalaCompile> {
     sourceCompatibility = "1.8"
     targetCompatibility = "1.8"
-}
-
-idea {
-    module {
-        isDownloadJavadoc = true
-        isDownloadSources = true
-    }
 }
 
 fun makeTest(
@@ -87,18 +85,11 @@ fun makeTest(
                 "-p", threadCount,
                 "-i", "$sampling"
         )
-        if (vars.isNotEmpty()) {
+        if (vars.isNotEmpty() && batch == "true") {
             args("-b", "-var", *vars.toTypedArray())
         }
     }
-    /*tasks {
-        "runTests" {
-            dependsOn("$name")
-        }
-    }*/
 }
 // thread = 1 force simulation to be sequential
-makeTest(name="independentHopCountQRL", file = "independentHopCountQRL", vars = setOf("episode"), threads = 1)
-makeTest(name="independentHopCountQRLGUI", file = "independentHopCountQRL", threads = 1)
-
-defaultTasks("fatJar")
+makeTest(name="swapSource", file = "swapSource", vars = setOf("episode"), threads = 1)
+makeTest(name="plain", file = "plain", vars = setOf("episode"), threads = 1)

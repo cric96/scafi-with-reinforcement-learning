@@ -5,7 +5,7 @@ import it.unibo.casestudy.HopCountQRL
 import it.unibo.scafi.RLGradientLib
 
 abstract class BaseHopCountRL extends AggregateProgram with StandardSensors with Gradients with ScafiAlchemistSupport
-  with FieldCalculusSyntax with FieldUtils with CustomSpawn with RLGradientLib with AggregateProgramWithLearning {
+  with FieldCalculusSyntax with FieldUtils with CustomSpawn with RLGradientLib with AggregateProgramWithLearning{
 
   override type OUTPUT = Int
   override type INPUT = (Boolean, () => Int)
@@ -87,7 +87,7 @@ trait BaseHopCountAlgorithm {
       val recents = recentValues(3, (minOutput, minAction))
       val latests = recents.head
       val diff = Math.abs(latests._1 - minOutput)
-      val currentState = if(Math.abs(diff) > maxStateValue) {
+      val currentState = if(diff > maxStateValue) {
         bigInteger
       } else {
         diff
