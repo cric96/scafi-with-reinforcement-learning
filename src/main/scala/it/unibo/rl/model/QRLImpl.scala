@@ -1,5 +1,7 @@
 package it.unibo.rl.model
 
+import scala.util.Random
+
 trait QRLImpl[S,A] extends QRL[S,A] with Serializable {
 
   /**
@@ -21,19 +23,17 @@ trait QRLImpl[S,A] extends QRL[S,A] with Serializable {
   }
 
   case class RealtimeQLearning(
-                        val gamma: Double,
-                        //val alpha: Double,
-                        //val epsilon: Double,
-                        val q0: Q){
+                        gamma: Double,
+                        q0: Q){
     private var state: Option[S] = None
     private var action: Option[A] = None
 
     def setState(s: S): Unit = { state = Some(s) }
     def takeAction(a: A): Unit = { action = Some(a) }
-    def takeEpsGreedyAction(qf: Q, time: Double): A = {
+    def takeEpsGreedyAction(qf: Q, time: Double)(implicit rand: Random): A = {
       val epsilon = QLParameter(0,time).epsilon
       //println(s"epsilon value: $epsilon at time $time, st: ${state.get}")
-      val a = qf.explorativePolicy(epsilon)(state.get)
+      val a = qf.explorationPolicy(epsilon)(rand)(state.get)
       takeAction(a)
       a
     }

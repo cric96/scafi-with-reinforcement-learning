@@ -1,10 +1,9 @@
-package it.unibo.rl.utils
+package it.unibo.alchemist.utils
 
 object Clock {
-  val initialTime = System.currentTimeMillis()
+  val initialTime: Long = System.currentTimeMillis()
 
   def timestampMills() : Long = System.currentTimeMillis() - initialTime
 
   def timestampSec() : Long = (System.currentTimeMillis() - initialTime) / 1000
-
 }

@@ -4,11 +4,9 @@ import it.unibo.rl.model.QRLImpl
 import it.unibo.scafi.learning.QRLFacade
 
 import scala.language.postfixOps
-import scala.util.Random
 
-class HopCountQRL(randomGen: Random)
+class HopCountQRL()
   extends QRLFacade[(Int, Int), Int](new QRLImpl[(Int, Int), Int]{
-    override implicit val random: Random = randomGen
   }, HopCountQRL.actions) with Serializable {
   val states : Set[(Int, Int)] = for {
     state <- HopCountQRL.states

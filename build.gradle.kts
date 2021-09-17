@@ -19,6 +19,7 @@ dependencies {
     implementation("it.unibo.alchemist:alchemist:11.3.1")
     implementation("it.unibo.alchemist:alchemist-incarnation-scafi:11.3.1")
     implementation("it.unibo.alchemist:alchemist-swingui:11.3.1")
+
     implementation("org.scala-lang:scala-library:2.13.2")
     implementation("it.unibo.scafi:scafi-core_2.13:0.3.3")
 }

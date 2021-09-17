@@ -1,5 +1,6 @@
 package it.unibo.casestudy
 
+import it.unibo.alchemist.utils.LearningInstances
 import it.unibo.scafi.learning.{BaseHopCountAlgorithm, BaseHopCountRL}
 
 /**
@@ -8,8 +9,8 @@ import it.unibo.scafi.learning.{BaseHopCountAlgorithm, BaseHopCountRL}
  */
 class IndependentsLearnersHopCount extends BaseHopCountRL with BaseHopCountAlgorithm {
 
-  override def learningInstance = IndependentHopCountRL.mine(mid, randomGen)
-
+  override lazy val learningInstance = LearningInstances.mine(mid)
+  implicit lazy val rand = randomGen
   override def initialSetup = (HopCountQRL.inf, 0, (HopCountQRL.inf, 0))
 
   override def algorithm: LearningBasedAlgorithm = new BaseHopCountAlgorithm()

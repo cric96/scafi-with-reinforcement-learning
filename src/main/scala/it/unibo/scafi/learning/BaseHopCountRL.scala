@@ -1,8 +1,9 @@
 package it.unibo.scafi.learning
 
 import it.unibo.alchemist.model.scafi.ScafiIncarnationForAlchemist.{ScafiAlchemistSupport, _}
+import it.unibo.alchemist.utils.Clock
+//import it.unibo.alchemist.utils.Clock
 import it.unibo.casestudy.HopCountQRL
-import it.unibo.rl.utils.Clock
 import it.unibo.scafi.RLGradientLib
 
 abstract class BaseHopCountRL extends AggregateProgram with StandardSensors with Gradients with ScafiAlchemistSupport
@@ -14,6 +15,7 @@ abstract class BaseHopCountRL extends AggregateProgram with StandardSensors with
   def initialSetup : (OUTPUT, ACTION, STATE)
   def learningInstance : QRLFacade[STATE, ACTION]
   def intMoleculeOf(name : String) : Int = Integer.parseInt((node.get[Any](name)).toString)
+  lazy val episode = node.get[java.lang.Double]("episode")
   //Variable loaded by alchemist configuration.
   lazy val LEFT_SRC: Int = intMoleculeOf("left_source")       // ID of the source at the left of the env (the stable one)
   lazy val RIGHT_SRC: Int = intMoleculeOf("right_source")      // ID of the source at the right of the env (the unstable one)
@@ -29,7 +31,9 @@ abstract class BaseHopCountRL extends AggregateProgram with StandardSensors with
     // Can be used in the learning session
     node.put("refHopCount", refHopCount)
     // RL-BASED GRADIENT: THE OBJECT OF OUR EXPERIMENTS
-    val rlbasedHopCount = learn(algorithm)((source, () => hopCountMetric().toInt))(initialSetup)(Clock.timestampSec().toDouble)
+    val clock = passedTime + episode * 120
+
+    val rlbasedHopCount = learn(algorithm)((source, () => hopCountMetric().toInt))(initialSetup)(clock)
     // EXPORTS
     node.put("classicHopCount", classicHopCount)
     node.put("rlbasedHopCount", rlbasedHopCount)

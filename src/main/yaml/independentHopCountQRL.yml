@@ -1,26 +1,21 @@
 incarnation: scafi
 
 variables:
-  random: &random
-    min: 0
-    max: 1
-    step: 1
-    default: 0
-  episodes: &episodes
-    formula: 100
-  episode: &episode
-    min: 0
-    max: *episodes
-    step: 1
-    default: 0
-  learn: &learn
-    formula: 'episode!=episodes'
-  range: &range
-    formula: 8.0
-  save_every: &save_every
-    formula: 'episodes/10'
-  stop_right_source: &stop_right_source
-    formula: 35
+  # SIMULATION VARIABLE
+  random: &random { formula: 0 }
+  episodes: &episodes { formula: 100 }
+  episode: &episode { min: 0, max: *episodes, step: 1, default: 0 }
+  learn: &learn { formula: 'episode < episodes' }
+  print_every: &print_every { formula: 'episodes / 10' }
+  range: &range { formula: 8.0 }
+  # PROGRAM VARIABLES
+  stop_right_source: &stop_right_source { formula: 35 }
+  # UTILITY, INITIALISE N QTABLE FOR N AGENTS
+  reloadTable: &reloadTable
+    language: kotlin
+    formula: >
+      it.unibo.alchemist.utils.LearningInstances.initialise(100);
+      10 //foo value
 
 environment:
   type: Continuous2DEnvironment
@@ -57,8 +52,6 @@ seeds:
 deployments:
   - type: Grid
     parameters: [0, 0, 100, 20, 5, 5, 3.5, 3.5, 0.0, 0.0] #large
-    #parameters: [5, 5, 50, 20, 5, 5, 3.5, 3.5, 0.0, 0.0] #medium
-    #parameters: [5, 5, 15, 20, 5, 5, 3.5, 3.5, 0.0, 0.0] #small
     # xStart: Double, yStart: Double, xEnd: Double, yEnd: Double, xStep: Double, yStep: Double, xRand: Double, yRand: Double, xShift: Double, yShift: Double
     #type: GeometricGradientRectangle
     #parameters: [100, 0, 0, 100, 20, 0.6, 20, true, true]
@@ -68,9 +61,7 @@ deployments:
           type: ExponentialTime
           parameters: [1]
         type: Event
-        actions:
-          - type: RunScafiProgram
-            parameters: [it.unibo.casestudy.IndependentsLearnersHopCount, 5.0] # second argument is retention time
+        actions: { type: RunScafiProgram, parameters: [it.unibo.casestudy.IndependentsLearnersHopCount, 5.0] }
       - program: send
 
     contents:
@@ -98,16 +89,16 @@ deployments:
         concentration: 40 #40
       - molecule: right_source
         concentration: 59 #59
+      - molecule: reloadTable
+        concentration: *reloadTable
 
 
   - type: Point
     parameters: [1000,1000]
     programs:
-      - time-distribution:
-          type: Trigger
-          parameters: [ 100.0 ]
+      - time-distribution: { type: Trigger, parameters: [ 100.0 ]}
         type: Event
-        actions: { type: it.unibo.Progress, parameters: [ qf ] }
+        actions: { type: it.unibo.Progress }
 
     contents:
       - molecule: range
@@ -129,4 +120,4 @@ deployments:
       - molecule: episode
         concentration: *episode
       - molecule: print_every
-        concentration: *save_every
+        concentration: *print_every

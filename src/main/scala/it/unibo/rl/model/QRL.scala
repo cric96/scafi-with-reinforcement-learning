@@ -10,8 +10,6 @@ trait QRL[S,A] {
   type P = Double // Probability
   type Policy = S=>A
   type VFunction = S=>R
-
-  implicit val random: Random
   /**
    * Q is an updatable, table-oriented state-action value function, to optimise selection over certain actions
    */
@@ -22,27 +20,13 @@ trait QRL[S,A] {
 
     def greedyPolicy: Policy = s => actions.maxBy{this(s,_)}
 
-    def epsilonGreedyPolicy(epsilon: P): Policy = explorativePolicy(epsilon)
+    def epsilonGreedyPolicy(epsilon: P)(implicit rand: Random): Policy = explorationPolicy(epsilon)
 
-    def explorativePolicy(f: P): Policy = {
+    def explorationPolicy(f: P)(implicit rand: Random): Policy = {
       case s if Stochastics.drawFiltered(_<f) => Stochastics.uniformDraw(actions)
       case s => greedyPolicy(s)
     }
 
     def optimalVFunction: VFunction = s => actions.map{ this(s,_) }.max
-  }
-
-  /**
-   * The learning system, with parameters
-   */
-  trait LearningProcess {
-    val system: System
-    val gamma: Double // discount parameter
-    val alpha: Double // step-size parameter
-    val epsilon: Double
-    val q0: Q
-
-    def updateQ(s: S, qf: Q): (S, Q)
-    def learn(episodes: Int, episodeLength: Int, qf: Q): Q
   }
 }
