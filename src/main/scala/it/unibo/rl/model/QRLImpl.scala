@@ -60,6 +60,6 @@ trait QRLImpl[S,A] extends QRL[S,A] with Serializable {
 }
 
 case class QLParameter(value: Double, t: Double) {
-  def epsilon = Math.min(0.01, 0.00 + (1- 0.00) * math.exp(-0.05 * t))
-  def alpha = Math.max(0.001, Math.min(0.5, 0.1 - Math.log10((t+1)/100.0))) //
+  def epsilon = 0.01 // Math.min(0.9, 0.00 + (1- 0.00) * math.exp(-0.4 * (t/ 20.0)))
+  def alpha = 0.05 // Math.max(0.05, Math.min(0.5, 0.1 - Math.log10((t+1)/100.0))) //
 }

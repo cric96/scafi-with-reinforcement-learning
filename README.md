@@ -1,26 +1,66 @@
-# Scafi integration with Reinforcement Learning techniques
+# ScaFi with Reinforcement Learning techniques
+This repository contains tests about the integration of Aggregate computing techniques with Reinforcement learning.
 
-This repository contains tests about the integration of Aggregate computing techniques with machine learning.
-In particular, we are interested in the integration of Reinforcement learning techniques in the Large Scale Comple Adaptive System (CAS) scenario.
+## Installation
+To run the experiments, you need:
+- Java (> 11) installed;
+- Python (> 3) installed.
 
-## How to use
+before runs any experiments, types these commands:
+```bash
+./gradlew build
+pip install -r requirements.txt
+```
 
-Each branch contains a particular case study (e.g. learning with Monte Carlo, distributed Q-Learning,..).
+We suggest to used Python virtual env. If you already have a Python > 3 installed, you can create a virtual env as:
+```
+python -m venv venv
+```
+Then, to enable the virtual environment you have to type:
+```
+source venv/bin/activate
+```
+Finally, in the terminal you should see something like this:
+```
+(venv)/my/relative/path
+```
+This means that everything is ok. To deactivate the current virtual environment just type:
+```bash
+deactivate
+```
 
-To run a simulation, we use gradle tasks. In each case study, there might be multiple defined gradle tasks.
-See the *build.gradle.kts* for choosing what task you want to run and then type:
+## Experiment
 
-``./gradlew taskName``
+<!-- rewrite in english -->
 
-## How to plot data
-Each simulation produces some relevant application data. We use python script to plot these data for having a visual feedback about the learning process.
-Some additional data might be produced, see the comments in each gradle task.
+In questo branch sono presenti gli esperimenti della combinazione di Aggregate Computing con l'apprendimento per rinforzo multi agente.
 
-In .python-version there is the correct python version for run these scripts. The library dependencies are store in
-.python-lib. If you use pip, you can run :
+Quì è stato utilizzato utilizzato Independent Reinforcement Learning, cioè ogni nodo tenta di apprendere 
+la miglior policy concorrentemente con gli altri nodi.
 
-`` pip install -r .python-version``
+Tra i vari algoritmi di apprendimento per rinforzo, è stato utilizzato Q-Learning, in quanto in letteratura
+sembra essere una buona soluzione anche in caso di Collective Adaptive System.
 
-### Progress description
+L'applicazione di riferimento in questo caso è l'Hop count, 
+cioè un programma aggregato che dato un nodo (o più) destinazione, restituisce 
+un campo computazionale in cui ogni nodo contiene il numero minimo di hop rispetto a tale destinazione
 
-Each branch has own experiment description (in a history.md file) that explain what are the progress done, what are problems, and the solution found.
+Ad esempio, dato una semplice rete:
+
+O-O-O-X
+
+Dove X è il nodo destinazione, il campo computazionale associato è:
+
+3-2-1-0
+
+<!-- describe the simplest algorithm to implement the hop count strategy -->
+
+In questo caso, l'aprendimento per rinforzo è stato applicato per migliorare
+i tempi di convergenza della soluzione classica 
+<!-- TODO extend this statement -->
+
+cioè:
+```scala
+
+```
+## How to reproduce the results

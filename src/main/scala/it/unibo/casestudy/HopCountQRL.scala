@@ -6,18 +6,17 @@ import it.unibo.scafi.learning.QRLFacade
 import scala.language.postfixOps
 
 class HopCountQRL()
-  extends QRLFacade[(Int, Int), Int](new QRLImpl[(Int, Int), Int]{
+  extends QRLFacade[List[Int], Int](new QRLImpl[List[Int], Int]{
   }, HopCountQRL.actions) with Serializable {
-  val states : Set[(Int, Int)] = for {
-    state <- HopCountQRL.states
-    action <- HopCountQRL.actions
-  } yield (state, action)
+  val states : List[Int] = for {
+    state <- HopCountQRL.states.toList
+  } yield (state)
 }
 
 object HopCountQRL {
-  val inf = 10000
-  val maxState = 6
-  val actions: Set[Int] = 0 to 2 toSet
+  val inf = 100000
+  val maxState = 1
+  val actions: Set[Int] = 0 to 1 toSet
   val stateRange: Set[Int] = 0 to maxState toSet
   val states: Set[Int] = stateRange.map(_* -1) ++ stateRange + inf + (-inf)
 }

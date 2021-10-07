@@ -4,20 +4,22 @@ import it.unibo.alchemist.utils.LearningInstances
 import it.unibo.rl.utils.Stochastics
 import it.unibo.scafi.learning.{BaseHopCountAlgorithm, BaseHopCountRL}
 
+import scala.util.Random
+
 /**
  * Distributed Q-learning version in which we imagine that there isn't a central mind that has a clear vision of all the
  * system state.
  */
 class IndependentsLearnersHopCount extends BaseHopCountRL with BaseHopCountAlgorithm {
 
-  override lazy val learningInstance = LearningInstances.mine(mid)
-  implicit lazy val rand = randomGen
+  override lazy val learningInstance: HopCountQRL = LearningInstances.mine(mid)
+  implicit lazy val rand: Random = randomGen
 
-  override def initialSetup = (HopCountQRL.inf, 0, (HopCountQRL.inf, 0))
+  override def initialSetup = (HopCountQRL.inf, 0, List())
 
   override def algorithm: LearningBasedAlgorithm = new BaseHopCountAlgorithm()
 
-  override def learn(algorithm: LearningBasedAlgorithm)(input: => (Boolean, () => Int))(initial: (Int, Int, (Int, Int)))(time: Double): Int = {
+  override def learn(algorithm: LearningBasedAlgorithm)(input: => (Boolean, () => Int))(initial: (Int, Int, List[Int]))(time: Double): Int = {
     val (o0, a0, s0) = initial
     val q = learningInstance
     val (hopCount, _, _) = rep((o0, a0, s0)) {
@@ -41,7 +43,7 @@ class IndependentsLearnersHopCount extends BaseHopCountRL with BaseHopCountAlgor
     hopCount
   }
 
-  override def act(algorithm: LearningBasedAlgorithm)(input: => (Boolean, () => Int))(initial: (Int, Int, (Int, Int)))(time: Double): Int = {
+  override def act(algorithm: LearningBasedAlgorithm)(input: => (Boolean, () => Int))(initial: (Int, Int, List[Int]))(time: Double): Int = {
     val (o0, a0, s0) = initial
     val q = learningInstance//IndependentHopCountRL.average
     val (hopCount, _, _) = rep((o0, a0, s0)){

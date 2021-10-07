@@ -9,19 +9,24 @@ abstract class BaseHopCountRL extends AggregateProgram with StandardSensors with
 
   override type OUTPUT = Int
   override type INPUT = (Boolean, () => Int)
-  def algorithm : LearningBasedAlgorithm
-  def initialSetup : (OUTPUT, ACTION, STATE)
-  def learningInstance : QRLFacade[STATE, ACTION]
-  def intMoleculeOf(name : String) : Int = (node.get[Integer](name))
-  lazy val episode = node.get[java.lang.Double]("episode")
-  lazy val episodeLength = node.get[java.lang.Integer]("episode_length")
-  lazy val haveToLearn = node.get[java.lang.Boolean]("learn")
-  lazy val clockFactor = 100
+
+  lazy val episode: Double = node.get[java.lang.Double]("episode")
+  lazy val episodeLength: Int = node.get[java.lang.Integer]("episode_length")
+  lazy val haveToLearn: Boolean = node.get[java.lang.Boolean]("learn")
+  lazy val clockFactor: Int = 100
   //Variable loaded by alchemist configuration.
   lazy val LEFT_SRC: Int = intMoleculeOf("left_source")       // ID of the source at the left of the env (the stable one)
   lazy val RIGHT_SRC: Int = intMoleculeOf("right_source")      // ID of the source at the right of the env (the unstable one)
   lazy val RIGHT_SRC_STOP: Int = intMoleculeOf("stop_right_source") // time at which the source at the right of the env stops being a source
+  lazy val WINDOW: Int = 3
+  lazy val TRAJECTORY: Int = 7
   private val hopCountMetric : Metric = () => 1.0
+
+  def algorithm : LearningBasedAlgorithm
+  def initialSetup : (OUTPUT, ACTION, STATE)
+  def learningInstance : QRLFacade[STATE, ACTION]
+  def intMoleculeOf(name : String) : Int = (node.get[Integer](name))
+
   override def main(): Any = {
     // SIMULATION DYNAMICS, BASELINE, and REFERENCE, IDEAL GRADIENT FOR COMPARISON AND ERROR CALCULATION
     val passedTime = alchemistTimestamp.toDouble
@@ -58,10 +63,9 @@ trait BaseHopCountAlgorithm {
   self : BaseHopCountRL =>
 
   override type ACTION = Int
-  override type STATE = (Int, Int)
+  override type STATE = List[Int]
   override type REWARD = Double
 
-  private val maxStateValue = HopCountQRL.maxState
   private val bigInteger = HopCountQRL.inf
   /**
    * our standard gradient learning algorithm
@@ -80,19 +84,14 @@ trait BaseHopCountAlgorithm {
 
     override def state(output: OUTPUT, oldState: STATE, action: ACTION): STATE = {
       val outputs = includingSelf.reifyField(nbr(output))
-      val actions = includingSelf.reifyField(nbr(action))
       val minOutputEntity = outputs.minBy(_._2)
       val minOutput = minOutputEntity._2
-      val minAction = actions(minOutputEntity._1)
-      val recents = recentValues(3, (minOutput, minAction))
-      val latests = recents.head
-      val diff = Math.abs(latests._1 - minOutput)
-      val currentState = if(diff > maxStateValue) {
-        bigInteger
-      } else {
-        diff
-      }
-      (currentState, latests._1)
+      val recent = recentValues(WINDOW, minOutput)
+      val oldState = recent.head
+      val diff = minOutput - oldState
+      val recentsDiffs = recentValues(TRAJECTORY, diff).toList
+      //List(minOutput)
+      recentsDiffs
     }
 
     override def run(input: (Boolean, () => ACTION), action: ACTION): OUTPUT = {
