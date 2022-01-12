@@ -10,7 +10,7 @@ class QRLFacade[S,A](val qrl: QRLImpl[S,A], val actions: Set[A]) {
     def makeLearningInstance(): RealtimeQLearning = RealtimeQLearning(gamma, qFunction)
   }
 
-  val system = Facade(gamma = 0.90, v0 = 0)
+  val system = Facade(gamma = 0.99, v0 = 0)
   val qlearning = system.makeLearningInstance()
   var qTable = qlearning.q0
 }

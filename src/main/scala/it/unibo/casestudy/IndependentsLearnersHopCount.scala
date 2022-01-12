@@ -1,7 +1,6 @@
 package it.unibo.casestudy
 
 import it.unibo.alchemist.utils.LearningInstances
-import it.unibo.rl.utils.Stochastics
 import it.unibo.scafi.learning.{BaseHopCountAlgorithm, BaseHopCountRL}
 
 import scala.util.Random
@@ -48,7 +47,7 @@ class IndependentsLearnersHopCount extends BaseHopCountRL with BaseHopCountAlgor
     val q = learningInstance//IndependentHopCountRL.average
     val (hopCount, _, _) = rep((o0, a0, s0)){
       case (hopCountResult, actionT, oldState) => val state = algorithm.state(hopCountResult, oldState, actionT)
-        q.qlearning.setState(state)
+        q.qlearning.setState(oldState)
         val action = q.qlearning.takeGreedyAction(q.qTable)
         (algorithm.run(input, action), action, state)
     }

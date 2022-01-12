@@ -48,7 +48,14 @@ trait QRLImpl[S,A] extends QRL[S,A] with Serializable {
         // By wikipedia (weighted average)
         //val vr = (1 - alpha) * qf(s, a) + alpha * (reward + gamma * qf.optimalVFunction(newState))
         // By book
-        val vr = qf(s, a) + alpha *(reward + gamma * qf.optimalVFunction(newState) - qf(s,a))
+        val update = (reward + gamma * qf.optimalVFunction(newState) - qf(s,a))
+
+        val vr = qf(s, a) + (if(update >= 0) {
+          update * alpha
+        } else {
+          update * (alpha)
+        }
+        )
         //println(s"State: $s, Action: $a, Value: $vr, Alpha: $alpha, Pair: ${qf(s,a)}, optimal: ${qf.optimalVFunction(newState)} ")
         //println(s"Value: $vr, optimal: ${qf.optimalVFunction(newState)} ")
         qf.update(s, a, vr)
@@ -61,5 +68,5 @@ trait QRLImpl[S,A] extends QRL[S,A] with Serializable {
 
 case class QLParameter(value: Double, t: Double) {
   def epsilon = 0.01 // Math.min(0.9, 0.00 + (1- 0.00) * math.exp(-0.4 * (t/ 20.0)))
-  def alpha = 0.05 // Math.max(0.05, Math.min(0.5, 0.1 - Math.log10((t+1)/100.0))) //
+  def alpha = 0.9 // Math.max(0.05, Math.min(0.5, 0.1 - Math.log10((t+1)/100.0))) //
 }

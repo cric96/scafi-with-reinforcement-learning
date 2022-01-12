@@ -75,7 +75,7 @@ trait BaseHopCountAlgorithm {
     override def reward(output: OUTPUT, state: STATE, oldState: STATE, action: ACTION): REWARD = {
       val realValue = node.get[java.lang.Double]("refHopCount").toInt
       val reward = Math.abs(realValue - output) match {
-        case n if n >= 1 => -1
+        case n if n == 0 => -1
         case _ => 0
       }
       node.put("reward", reward * -1)
